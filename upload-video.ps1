@@ -1,10 +1,10 @@
 # Parameters
 $delete_dropbox_days = 7
 $delete_shortterm_days = 30
-
+$config_file = '.\config.xml'
 
 # Setup Variable
-[xml]$conf=Get-Content .\config.xml
+[xml]$conf=Get-Content $config_file
 $inbox = $conf.config.inbox_location
 $dropbox = $conf.config.dropbox_location
 $short_term =  $conf.config.short_term_archive_location
