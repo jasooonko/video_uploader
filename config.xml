@@ -1,20 +1,8 @@
-<config>`
-    <inbox_location>
-        C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_inbox\ 
-    </inbox_location>
-    <dropbox_location>
-        C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_dropbox\ 
-    </dropbox_location>
-    <short_term_archive_location>
-        C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_short\ 
-    </short_term_archive_location>
-    <long_term_archive_location>
-        C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_long\ 
-    </long_term_archive_location>
-    <handbrakecli_location>
-        HandBrakeCLI.exe 
-    </handbrakecli_location>
-    <notification_emails>
-        jasooonko@gmail.com;
-    </notification_emails>
+<config>
+    <inbox_location>C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_inbox\</inbox_location>
+    <dropbox_location>C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_dropbox\</dropbox_location>
+    <short_term_archive_location>C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_short\</short_term_archive_location>
+    <long_term_archive_location>C:\Users\jason.ko\Dropbox\church\script\video_uploader\loc_long\</long_term_archive_location>
+    <handbrakecli_location>HandBrakeCLI.exe</handbrakecli_location>
+    <notification_emails>jasooonko@gmail.com;</notification_emails>
 </config>
