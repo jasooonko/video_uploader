@@ -1,3 +1,5 @@
 *.mts
 *.mp4
+*.log
 loc*\
+send-mail.ps1
