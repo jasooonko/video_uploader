@@ -14,58 +14,56 @@ $handbrake = $conf.config.handbrakecli_location + "\HandBrakeCLI.exe"
 $emails = $conf.config.notification_emails
 
 
+function print($msg){
+    write-host $msg -foreground yellow
+    $global:message += $msg + "`n"
+}
+
 $global:message = ""
 $files = ls $inbox\*.mts
 #$files = ls $short_term\*.mts
 if ( $files -eq $null){
-    $global:message += "No file in inbox: $inbox`n"
+    print("No file in inbox: $inbox")
 } 
 else{
     $global:message += "The following files has been transcoded and is in the process of being uploaded to Vimeo`n"
-        foreach($file in $files){
-            $folder = $file.CreationTime.Year
-                $mts = $file.name
-                $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
-                $mts
-                $mp4
-                $global:message += "$inbcx\$mts`n"
-                move-item $inbox\$mts $short_term -force
+    foreach($file in $files){
+        $folder = $file.CreationTime.Year
+        $mts = $file.name
+        $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
+        print("$inbcx\$mts")
+        move-item $inbox\$mts $short_term -force
 
-                "Transcode mts to mp4"
-                &$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="Universal"
-                if($LastExitCode -ne 0){ $global:message += "Transcode file failed: $mts`n"}
+        "Transcode mts to mp4"
+        &$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="Universal"
+        if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
-            "Move file around"
-                if((Test-Path $long_term\$folder) -eq $false){
-                    md $long_term\$folder
-                }
-            cp $short_term\$mp4 $long_term\$folder\$mp4 -force
-                mv $short_term\$mp4 $dropbox\$mp4 -force
-                rm $short_term\$mts -force -whatif
+        "Move file around"
+        if((Test-Path $long_term\$folder) -eq $false){
+            md $long_term\$folder
         }
+        cp $short_term\$mp4 $long_term\$folder\$mp4 -force
+        mv $short_term\$mp4 $dropbox\$mp4 -force
+        rm $short_term\$mts -force -whatif
+    }
 }
 
 
-$global:message += "`nClean Up...`n"
+print("`nClean Up...")
 function delete_old_file($folder, $days_since_creation){
     $files = ls $folder
         if($files -eq $null){
-            $global:message += "No file to deleted in: $folder`n"
+            print("No file to deleted in: $folder")
         }
         else{
-            "files: $files in $folder"
             $global:message += "File found in: $folder`n"
             foreach($file in $files){
                 if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
-                    $msg = " - Delete: " + $file + " (created:" + $file.creationTime + ")"
-                        $msg
-                        $global:message += "$msg`n"
-                        rm $file -force 
+                    print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
+                    rm $file -force 
                 }
                 else{
-                    $msg = " + Ignored: " + $file + " (created:" + $file.creationTime + ")"
-                    $msg
-                    $global:message += "$msg`n"
+                    print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
                 }
             }
         }
@@ -75,10 +73,10 @@ delete_old_file $dropbox $delete_dropbox_days
 
 # Check dropbox folder size
 $dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
-    $global:message += "`nCurrent dropbox folder size: $dropbox_size MB"
+print("`nCurrent dropbox folder size: $dropbox_size MB")
 
 
 # Send Notification & write log
     $global:message > $log_file
-    write-host $global:message
+    #write-host $global:message
     .\send-mail.ps1 $emails "Newtown Video Processing Status" $global:message
