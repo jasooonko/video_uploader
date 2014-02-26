@@ -52,21 +52,21 @@ else{
 print("`nClean Up...")
 function delete_old_file($folder, $days_since_creation){
     $files = ls $folder
-        if($files -eq $null){
-            print("No file to deleted in: $folder")
-        }
-        else{
-            $global:message += "File found in: $folder`n"
-            foreach($file in $files){
-                if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
-                    print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
-                    rm $file -force 
-                }
-                else{
-                    print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
-                }
+    if($files -eq $null){
+        print("No file to deleted in: $folder")
+    }
+    else{
+        $global:message += "File found in: $folder`n"
+        foreach($file in $files){
+            if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
+                print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
+                rm $file -force 
+            }
+            else{
+                print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
             }
         }
+    }
 }
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
