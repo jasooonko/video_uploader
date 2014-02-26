@@ -26,7 +26,7 @@ if ( $files -eq $null){
     print("No file in inbox: $inbox")
 } 
 else{
-    $global:message += "The following files has been transcoded and is in the process of being uploaded to Vimeo`n"
+    print("The following files has been transcoded and is in the process of being uploaded to Vimeo")
     foreach($file in $files){
         $folder = $file.CreationTime.Year
         $mts = $file.name
@@ -56,7 +56,7 @@ function delete_old_file($folder, $days_since_creation){
         print("No file to deleted in: $folder")
     }
     else{
-        $global:message += "File found in: $folder`n"
+        print("File found in: $folder")
         foreach($file in $files){
             if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
                 print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
