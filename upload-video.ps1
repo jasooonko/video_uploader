@@ -28,10 +28,10 @@ if ( $files -eq $null){
 else{
     print("The following files has been transcoded and is in the process of being uploaded to Vimeo")
     foreach($file in $files){
-        $folder = $file.CreationTime.Year
+        $year = $file.CreationTime.Year
         $mts = $file.name
         $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
-        print("$inbcx\$mts")
+        print("$inbox\$mts")
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
@@ -39,10 +39,10 @@ else{
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
         "Move file around"
-        if((Test-Path $long_term\$folder) -eq $false){
-            md $long_term\$folder
+        if((Test-Path $long_term\$year) -eq $false){
+            md $long_term\$year
         }
-        cp $short_term\$mp4 $long_term\$folder\$mp4 -force
+        cp $short_term\$mp4 $long_term\$year\$mp4 -force
         mv $short_term\$mp4 $dropbox\$mp4 -force
         rm $short_term\$mts -force -whatif
     }
