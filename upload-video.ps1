@@ -77,6 +77,6 @@ print("`nCurrent dropbox folder size: $dropbox_size MB")
 
 
 # Send Notification & write log
-    $global:message > $log_file
-    #write-host $global:message
-    .\send-mail.ps1 $emails "Newtown Video Processing Status" $global:message
+$global:message > $log_file
+#write-host $global:message
+.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
