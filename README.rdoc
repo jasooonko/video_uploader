@@ -1,5 +1,4 @@
-video_uploader
-==============
+= video_uploader
 
 Configurable Variable:
 inbox_location
@@ -9,26 +8,27 @@ long_term_archive_location
 handbrakecli_location
 notification_emails
 
-Script Steps
-1. Scan inbox_location for incoming file
+= Script Steps
+
+== 1. Scan inbox_location for incoming file
 Camera only support files up to 2GB. It automatically splits the files in two. The importer (Canon image browser) that comes with the camera will combine the files automatically. However, might need to combine files prior to transcoding if we don’t want to use the canon image browser.
 
-2. Transcode
+== 2. Transcode
 This is the handbrake command for transcoding: 
 
 handbrakecli_location\HandBrakeCLI.exe -i incoming_filename.mts -o outgoing_filename.mp4 --preset="Universal" 
 
-3. Move files around
+== 3. Move files around
 Move original MTS file to short_term_archive_location (in case something went wrong, we still have original MTS file)
 Move transcoded MP4 file to long_term_archive_location (file should be store by year)
 Move transcoded MP4 file to dropbox_location (auto publish)
 Delete original MTS file from inbox
 
-4.Clean Up
+== 4.Clean Up
 Delete dropbox_location file older than 1 week
 Delete short_term_archive_location file older than 1 month
 
-5.Notification
+== 5.Notification
 Email notification_emails:
 
 The following files has been transcoded and is in the process of being uploaded to Vimeo:
