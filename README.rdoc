@@ -1,12 +1,12 @@
 = video_uploader
 
 == Configurable Variable:
-* inbox_location
-* dropbox_location
-* short_term_archive_location
-* long_term_archive_location
-* handbrakecli_location
-* notification_emails
+ * inbox_location
+ * dropbox_location
+ * short_term_archive_location
+ * long_term_archive_location
+ * handbrakecli_location
+ * notification_emails
 
 = Script Steps
 
@@ -33,7 +33,7 @@ Email notification_emails:
 
 The following files has been transcoded and is in the process of being uploaded to Vimeo:
 
-file 1
-file 2
-file 3
+ file 1
+ file 2
+ file 3
 
