@@ -1,12 +1,12 @@
 = video_uploader
 
-Configurable Variable:
-inbox_location
-dropbox_location
-short_term_archive_location
-long_term_archive_location
-handbrakecli_location
-notification_emails
+* Configurable Variable:
+* inbox_location
+* dropbox_location
+* short_term_archive_location
+* long_term_archive_location
+* handbrakecli_location
+* notification_emails
 
 = Script Steps
 
