@@ -17,8 +17,8 @@ $Body = $message
 $SMTPServer = "smtp.gmail.com" 
 $SMTPClient = New-Object Net.Mail.SmtpClient($SmtpServer, 587) 
 $SMTPClient.EnableSsl = $true 
-#$SMTPClient.Credentials = New-Object System.Net.NetworkCredential($email, "some_password"); 
 $SMTPClient.Credentials = $credential;
+#$SMTPClient.Credentials = New-Object System.Net.NetworkCredential($email, "some_password"); 
 $SMTPClient.Send($EmailFrom, $EmailTo, $Subject, $Body)
 
 write-host "Email Sent: $emails"
