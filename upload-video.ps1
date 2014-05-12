@@ -1,8 +1,12 @@
 # Parameters
 $delete_dropbox_days = 7
 $delete_shortterm_days = 30
+$delete_log_days = 30
 $config_file = '.\config.xml'
-$log_file = '.\transcode.log'
+$log_folder = '.\log\'
+$log_file = $log_folder + 'transcode-' + (get-date).toString('yyyyMMdd') + '.log'
+
+$log_file
 
 # Setup Variable
 [xml]$conf=Get-Content $config_file
@@ -76,7 +80,7 @@ else{
         $year = $file.CreationTime.Year
         $mts = $file.name
         $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
-        print("$inbox\$mts")
+        print("$inbox$mp4")
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
@@ -94,7 +98,7 @@ else{
 }
 
 # ------------------------------------------------------------------
-print("`nClean Up...")
+print("Clean Up...")
 # ------------------------------------------------------------------
 
 function delete_old_file($folder, $days_since_creation){
@@ -118,21 +122,22 @@ function delete_old_file($folder, $days_since_creation){
 }
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
-print("Process ended: " + get-date)
+delete_old_file $log_folder $delete_log_days
 
 # ------------------------------------------------------------------
 # Check dropbox folder size
 # ------------------------------------------------------------------
 
 $dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
-print("`nCurrent dropbox folder size: $dropbox_size MB")
-
-print("Process end...")
+print("Current dropbox folder size: $dropbox_size MB")
+print("Process end...`n`n")
 
 # ------------------------------------------------------------------
 # Send Notification & write log
 # ------------------------------------------------------------------
-
-$global:message > $log_file
+if((test-path $log_folder) -eq $false){
+  md $log_folder
+}
+$global:message >> $log_file
 #write-host $global:message
 #.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
