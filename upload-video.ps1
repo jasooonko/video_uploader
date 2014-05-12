@@ -12,14 +12,60 @@ $short_term =  $conf.config.short_term_archive_location
 $long_term = $conf.config.long_term_archive_location
 $handbrake = $conf.config.handbrakecli_location + "\HandBrakeCLI.exe"
 $emails = $conf.config.notification_emails
-
+$cwd = pwd
 
 function print($msg){
-    write-host $msg -foreground yellow
-    $global:message += $msg + "`n"
+  $date = (Get-Date).toString("yyyy-MM-dd HH:mm:ss")
+  write-host $msg -foreground yellow
+  $global:message += "[$date] $msg" + "`n"
 }
 
 $global:message = ""
+
+print("Process starts...")
+
+# -------------------------------------------------------------------
+# if $inbox contains directories, merge all mts within the directory
+# -------------------------------------------------------------------
+
+$directories  = Get-ChildItem $inbox | ?{ $_.PSIsContainer }
+if($directories.length -gt 0){
+foreach($dir in $directories){
+  $dir_full = $dir.fullname
+  $dir_name = $dir.name
+  print("Directory found: $dir_full")
+  $files = ls $dir_full/*.mts |sort Name
+    $file_list = ''
+    foreach($file in $files){
+      $file_list = $file_list + $file.name + '+'
+    }
+    if($file_list.length -gt 0){
+      $file_list = $file_list.Substring(0,$file_list.Length-1)
+      print("Merge: $file_list")
+      $export_mts = "$inbox" + $dir_name + ".mts"
+      cd $dir_full
+      cmd /c copy /b $file_list $export_mts
+      cd $cwd
+      if($LastExitCode -eq 0){
+        mv $dir_full $short_term        
+      }
+      else{
+        print("Something went wrong during merge...exit!")
+        exit 1
+      }
+      print("export_file: $export_mts")
+    }
+    else{
+      print("No MTS found in: $dir")
+    }
+}
+}
+
+# ------------------------------------------------------------------
+# Process MTS files inside $inbox
+# ------------------------------------------------------------------
+
+
 $files = ls $inbox\*.mts
 #$files = ls $short_term\*.mts
 if ( $files -eq $null){
@@ -48,8 +94,10 @@ else{
     }
 }
 
-
+# ------------------------------------------------------------------
 print("`nClean Up...")
+# ------------------------------------------------------------------
+
 function delete_old_file($folder, $days_since_creation){
     $files = ls $folder
     if($files -eq $null){
@@ -60,7 +108,7 @@ function delete_old_file($folder, $days_since_creation){
         foreach($file in $files){
             if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
                 print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
-                rm $file -force 
+                rm $folder\$file -force 
             }
             else{
                 print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
@@ -71,12 +119,20 @@ function delete_old_file($folder, $days_since_creation){
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
 
+
+
+# ------------------------------------------------------------------
 # Check dropbox folder size
+# ------------------------------------------------------------------
 $dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
 print("`nCurrent dropbox folder size: $dropbox_size MB")
 
+print("Process end...")
 
+# ------------------------------------------------------------------
 # Send Notification & write log
+# ------------------------------------------------------------------
+
 $global:message > $log_file
 #write-host $global:message
-.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
+#.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
