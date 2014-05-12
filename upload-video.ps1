@@ -20,6 +20,30 @@ function print($msg){
 }
 
 $global:message = ""
+
+# -------------------------------------------------------------------
+# if $inbox contains directories, merge all mts within the directory
+# -------------------------------------------------------------------
+
+$directories  = Get-ChildItem $inbox | ?{ $_.PSIsContainer }
+foreach($dir in $directories){
+  print("Directory found: $dir")
+  $files = ls $dir.fullname/*.mts |sort Name
+  $file_list = ''
+  foreach($file in $files){
+    $file_list = $file_list + $file.name + '+'
+  }
+  $file_list = $file_list.Substring(0,$filelist.Length-1)
+  print("Merge: $file_list")
+  $export_mts = "$inbox" + $dir.name + ".mts"
+  cd $dir
+  copy /b $file_list $export_mts 
+}
+
+# ------------------------------------------------------------------
+# Process MTS files inside $inbox
+# ------------------------------------------------------------------
+
 $files = ls $inbox\*.mts
 #$files = ls $short_term\*.mts
 if ( $files -eq $null){
@@ -49,8 +73,12 @@ else{
 }
 
 
+# ------------------------------------------------------------------
 print("`nClean Up...")
+# ------------------------------------------------------------------
+
 function delete_old_file($folder, $days_since_creation){
+
     $files = ls $folder
     if($files -eq $null){
         print("No file to deleted in: $folder")
@@ -63,7 +91,7 @@ function delete_old_file($folder, $days_since_creation){
                 rm $file -force 
             }
             else{
-                print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
+                print(" * Ignored: " + $file + " (created:" + $file.creationTime + ")")
             }
         }
     }
@@ -71,12 +99,16 @@ function delete_old_file($folder, $days_since_creation){
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
 
+# ------------------------------------------------------------------
 # Check dropbox folder size
+# ------------------------------------------------------------------
 $dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
 print("`nCurrent dropbox folder size: $dropbox_size MB")
 
 
+# ------------------------------------------------------------------
 # Send Notification & write log
+# ------------------------------------------------------------------
 $global:message > $log_file
 #write-host $global:message
 .\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
