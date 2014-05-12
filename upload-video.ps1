@@ -21,6 +21,8 @@ function print($msg){
 
 $global:message = ""
 
+print("Process starts: " + get-date)
+
 # -------------------------------------------------------------------
 # if $inbox contains directories, merge all mts within the directory
 # -------------------------------------------------------------------
@@ -98,6 +100,7 @@ function delete_old_file($folder, $days_since_creation){
 }
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
+print("Process ended: " + get-date)
 
 # ------------------------------------------------------------------
 # Check dropbox folder size
