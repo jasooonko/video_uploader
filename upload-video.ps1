@@ -65,7 +65,6 @@ foreach($dir in $directories){
 # Process MTS files inside $inbox
 # ------------------------------------------------------------------
 
-
 $files = ls $inbox\*.mts
 #$files = ls $short_term\*.mts
 if ( $files -eq $null){
@@ -99,6 +98,7 @@ print("`nClean Up...")
 # ------------------------------------------------------------------
 
 function delete_old_file($folder, $days_since_creation){
+
     $files = ls $folder
     if($files -eq $null){
         print("No file to deleted in: $folder")
@@ -111,19 +111,19 @@ function delete_old_file($folder, $days_since_creation){
                 rm $folder\$file -force 
             }
             else{
-                print(" + Ignored: " + $file + " (created:" + $file.creationTime + ")")
+                print(" * Ignored: " + $file + " (created:" + $file.creationTime + ")")
             }
         }
     }
 }
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
-
-
+print("Process ended: " + get-date)
 
 # ------------------------------------------------------------------
 # Check dropbox folder size
 # ------------------------------------------------------------------
+
 $dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
 print("`nCurrent dropbox folder size: $dropbox_size MB")
 
