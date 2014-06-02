@@ -32,7 +32,7 @@ print("Process starts...")
 # if $inbox contains directories, merge all mts within the directory
 # -------------------------------------------------------------------
 
-$directories  = Get-ChildItem $inbox | ?{ $_.PSIsContainer }
+$directories  = @(Get-ChildItem $inbox | ?{ $_.PSIsContainer })
 if($directories.length -gt 0){
 foreach($dir in $directories){
   $dir_full = $dir.fullname
@@ -140,4 +140,4 @@ if((test-path $log_folder) -eq $false){
 }
 $global:message >> $log_file
 #write-host $global:message
-#.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
+.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
