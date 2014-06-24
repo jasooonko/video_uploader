@@ -37,6 +37,10 @@ if($directories.length -gt 0){
 foreach($dir in $directories){
   $dir_full = $dir.fullname
   $dir_name = $dir.name
+  if((ls $dir_full\*.mts|measure-object).count -eq 0){
+    print "Ignore empty folder: $dir_full"
+	break
+  }
   print("Directory found: $dir_full")
   $files = ls $dir_full/*.mts |sort Name
     $file_list = ''
