@@ -28,6 +28,7 @@ function print($msg){
 $global:message = ""
 
 print("Process starts...")
+print("Using preset: $preset")
 
 # -------------------------------------------------------------------
 # if $inbox contains directories, merge all mts within the directory
