@@ -15,6 +15,7 @@ $dropbox = $conf.config.dropbox_location
 $short_term =  $conf.config.short_term_archive_location
 $long_term = $conf.config.long_term_archive_location
 $handbrake = $conf.config.handbrakecli_location + "\HandBrakeCLI.exe"
+$preset = $conf.config.preset
 $emails = $conf.config.notification_emails
 $cwd = pwd
 
@@ -88,7 +89,7 @@ else{
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
-        &$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="Universal"
+        &$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="$preset"
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
         "Move file around"
