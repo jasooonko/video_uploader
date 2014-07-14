@@ -7,7 +7,8 @@
 
     <!-- Encoding Preset -->
     <preset>Universal</preset> 
-    
+    <additional_enc_flags>-2</additional_enc_flags>
+
     <!-- List Email in comma separated form  -->
     <notification_emails>jasooonko@gmail.com</notification_emails>
 </config>
