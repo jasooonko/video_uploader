@@ -5,6 +5,7 @@ $delete_log_days = 30
 $config_file = '.\config.xml'
 $log_folder = '.\log\'
 $log_file = $log_folder + 'transcode-' + (get-date).toString('yyyyMMdd') + '.log'
+$vimeo_rss = 'http://vimeo.com/user25324109/videos/rss'
 
 $log_file
 
@@ -69,7 +70,7 @@ foreach($dir in $directories){
     else{
       print("No MTS found in: $dir")
     }
-}
+  }
 }
 
 # ------------------------------------------------------------------
@@ -119,7 +120,7 @@ function delete_old_file($folder, $days_since_creation){
         foreach($file in $files){
             if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
                 print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
-                rm $folder\$file -force 
+                rm $folder\$file -force -recurse
             }
             else{
                 print(" * Ignored: " + $file + " (created:" + $file.creationTime + ")")
@@ -130,6 +131,19 @@ function delete_old_file($folder, $days_since_creation){
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $dropbox $delete_dropbox_days
 delete_old_file $log_folder $delete_log_days
+
+# ------------------------------------------------------------------
+# Clean up dropbox base on rss feed 
+# ------------------------------------------------------------------
+
+$files = ls $dropbox
+$rssFeed = [xml](New-Object System.Net.WebClient).DownloadString($vimeo_rss)
+foreach($file in $files){
+  if($rssFeed.rss.channel.item |select-object title|select-string $file){
+    print("dropbox remove: $dropbox\$file")
+    rm $dropbox\$file -force
+  }
+}
 
 # ------------------------------------------------------------------
 # Check dropbox folder size
