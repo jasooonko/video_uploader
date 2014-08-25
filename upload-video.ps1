@@ -5,7 +5,6 @@ $delete_log_days = 30
 $config_file = '.\config.xml'
 $log_folder = '.\log\'
 $log_file = $log_folder + 'transcode-' + (get-date).toString('yyyyMMdd') + '.log'
-$vimeo_rss = 'http://vimeo.com/user25324109/videos/rss'
 
 $log_file
 
@@ -15,7 +14,7 @@ $inbox = $conf.config.inbox_location
 $dropbox = $conf.config.dropbox_location
 $short_term =  $conf.config.short_term_archive_location
 $long_term = $conf.config.long_term_archive_location
-$handbrake = $conf.config.handbrakecli_location + "\HandBrakeCLI.exe"
+$handbrake = $conf.config.handbrakecli_location + "HandBrakeCLI.exe"
 $preset = $conf.config.preset
 $additional_enc_flags = $conf.config.additional_enc_flags
 $emails = $conf.config.notification_emails
@@ -31,7 +30,7 @@ $global:message = ""
 
 print("Process starts...")
 print("Using preset: $preset")
-print("Additional flags: $additional_enc_flags")
+print("Using preset: $additional_enc_flags")
 # -------------------------------------------------------------------
 # if $inbox contains directories, merge all mts within the directory
 # -------------------------------------------------------------------
@@ -70,7 +69,7 @@ foreach($dir in $directories){
     else{
       print("No MTS found in: $dir")
     }
-  }
+}
 }
 
 # ------------------------------------------------------------------
@@ -92,7 +91,9 @@ else{
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
-        &$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="$preset" $additional_enc_flags
+		print("$handbrake --preset='$preset' $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
+        Invoke-Expression -command "$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4"
+		#&$handbrake --preset="$preset" $additional_enc_flags -i $short_term$mts -o $short_term$mp4
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
         "Move file around"
@@ -133,17 +134,23 @@ delete_old_file $dropbox $delete_dropbox_days
 delete_old_file $log_folder $delete_log_days
 
 # ------------------------------------------------------------------
-# Clean up dropbox base on rss feed 
+$vimeo_rss = 'http://vimeo.com/user25324109/videos/rss'
+print("Clean up dropbox base on rss feed: $vimeo_rss") 
 # ------------------------------------------------------------------
 
 $files = ls $dropbox
 $rssFeed = [xml](New-Object System.Net.WebClient).DownloadString($vimeo_rss)
-foreach($file in $files){
-  if($rssFeed.rss.channel.item |select-object title|select-string $file){
-    print("dropbox remove: $dropbox\$file")
-    rm $dropbox\$file -force
+$n=0
+if($files -ne $null){
+  foreach($file in $files){
+    if($rssFeed.rss.channel.item |select-object title|select-string $file){
+      print("dropbox remove: $dropbox\$file")
+      rm $dropbox\$file -force
+	  $n = $n+1
+    }
   }
 }
+print("$n file(s) were deleted from dropbox folder")
 
 # ------------------------------------------------------------------
 # Check dropbox folder size
