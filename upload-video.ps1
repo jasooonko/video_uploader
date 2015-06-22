@@ -1,3 +1,5 @@
+$debug = $FALSE
+
 # Parameters
 $delete_dropbox_days = 7
 $delete_shortterm_days = 30
@@ -47,15 +49,11 @@ foreach($dir in $directories){
   print("Directory found: $dir_full")
   $files = ls $dir_full/*.mts |sort Name
     $file_list = ''
-    foreach($file in $files){
-      $file_list = $file_list + $file.name + '+'
-    }
-    if($file_list.length -gt 0){
-      $file_list = $file_list.Substring(0,$file_list.Length-1)
-      print("Merge: $file_list")
+	if($files.length -gt 0){
+      print("Merge: $files")
       $export_mts = "$inbox" + $dir_name + ".mts"
       cd $dir_full
-      cmd /c copy /b $file_list $export_mts
+	  cat $files > $export_mts
       cd $cwd
       if($LastExitCode -eq 0){
         mv $dir_full $short_term        
@@ -91,8 +89,7 @@ else{
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
-        print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
-        #&$handbrake -i $short_term\$mts -o $short_term\$mp4 --preset="$preset" $additional_enc_flags
+		print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
         Invoke-Expression -command "$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4"
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
@@ -168,4 +165,6 @@ if((test-path $log_folder) -eq $false){
 }
 $global:message >> $log_file
 #write-host $global:message
-.\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
+if(!$debug){
+  .\send-mail.ps1 $emails "Newtown Video Transcode Status" $global:message
+}
