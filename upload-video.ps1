@@ -53,15 +53,15 @@ foreach($dir in $directories){
       print("Merge: $files")
       $export_mts = "$inbox" + $dir_name + ".mts"
       cd $dir_full
-	  cat $files > $export_mts
+	  get-content $files -Enc Byte -Read 512 | set-content $export_mts -Enc Byte
       cd $cwd
-      if($LastExitCode -eq 0){
+      #if($LastExitCode -eq 0){
         mv $dir_full $short_term        
-      }
-      else{
-        print("Something went wrong during merge...exit!")
-        exit 1
-      }
+      #}
+      #else{
+      #  print("Something went wrong during merge...exit!")
+      #  exit 1
+      #}
       print("export_file: $export_mts")
     }
     else{
@@ -90,16 +90,16 @@ else{
 
         "Transcode mts to mp4"
 		print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
-        Invoke-Expression -command "$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4"
+        Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
         "Move file around"
         if((Test-Path $long_term\$year) -eq $false){
             md $long_term\$year
         }
-        cp $short_term\$mp4 $long_term\$year\$mp4 -force
-        mv $short_term\$mp4 $dropbox\$mp4 -force
-        rm $short_term\$mts -force -whatif
+        cp "$short_term\$mp4" "$long_term\$year\$mp4" -force
+        mv "$short_term\$mp4" "$dropbox\$mp4" -force
+        rm "$short_term\$mts" -force -whatif
     }
 }
 
@@ -142,7 +142,7 @@ if($files -ne $null){
   foreach($file in $files){
     if($rssFeed.rss.channel.item |select-object title|select-string $file){
       print("dropbox remove: $dropbox\$file")
-      rm $dropbox\$file -force
+      rm "$dropbox\$file" -force
 	  $n = $n+1
     }
   }
