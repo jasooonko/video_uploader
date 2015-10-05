@@ -44,16 +44,16 @@ foreach($dir in $directories){
   $dir_name = $dir.name
   if((ls $dir_full\*.mts|measure-object).count -eq 0){
     print "Ignore empty folder: $dir_full"
-	break
+  break
   }
   print("Directory found: $dir_full")
   $files = ls $dir_full/*.mts |sort Name
     $file_list = ''
-	if($files.length -gt 0){
+  if($files.length -gt 0){
       print("Merge: $files")
       $export_mts = "$inbox" + $dir_name + ".mts"
       cd $dir_full
-	  get-content $files -Enc Byte -Read 512 | set-content $export_mts -Enc Byte
+    get-content $files -Enc Byte -Read 512 | set-content $export_mts -Enc Byte
       cd $cwd
       #if($LastExitCode -eq 0){
         mv $dir_full $short_term        
@@ -78,7 +78,7 @@ $files = ls $inbox\*.mts
 #$files = ls $short_term\*.mts
 if ( $files -eq $null){
     print("No file in inbox: $inbox")
-} 
+}
 else{
     print("The following files has been transcoded and is in the process of being uploaded to Vimeo")
     foreach($file in $files){
@@ -89,7 +89,7 @@ else{
         move-item $inbox\$mts $short_term -force
 
         "Transcode mts to mp4"
-		print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
+        print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
         Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
         if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
@@ -98,7 +98,11 @@ else{
             md $long_term\$year
         }
         cp "$short_term\$mp4" "$long_term\$year\$mp4" -force
-        mv "$short_term\$mp4" "$dropbox\$mp4" -force
+        "Upload File $short_term\$mp4"
+        cd C:\VideoUpload\lib\simple-vimeo-uploader
+        php C:\VideoUpload\lib\simple-vimeo-uploader\bin\upload.php "$short_term\$mp4"
+        cd $cwd
+        #mv "$short_term\$mp4" "$dropbox\$mp4" -force
         rm "$short_term\$mts" -force -whatif
     }
 }
@@ -127,7 +131,7 @@ function delete_old_file($folder, $days_since_creation){
     }
 }
 delete_old_file $short_term $delete_shortterm_days
-delete_old_file $dropbox $delete_dropbox_days
+#delete_old_file $dropbox $delete_dropbox_days
 delete_old_file $log_folder $delete_log_days
 
 # ------------------------------------------------------------------
@@ -143,7 +147,7 @@ if($files -ne $null){
     if($rssFeed.rss.channel.item |select-object title|select-string $file){
       print("dropbox remove: $dropbox\$file")
       rm "$dropbox\$file" -force
-	  $n = $n+1
+    $n = $n+1
     }
   }
 }
