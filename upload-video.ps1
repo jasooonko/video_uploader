@@ -1,7 +1,6 @@
 $debug = $FALSE
 
 # Parameters
-$delete_dropbox_days = 7
 $delete_shortterm_days = 30
 $delete_log_days = 30
 $config_file = '.\config.xml'
@@ -13,7 +12,6 @@ $log_file
 # Setup Variable
 [xml]$conf=Get-Content $config_file
 $inbox = $conf.config.inbox_location
-$dropbox = $conf.config.dropbox_location
 $short_term =  $conf.config.short_term_archive_location
 $long_term = $conf.config.long_term_archive_location
 $handbrake = $conf.config.handbrakecli_location + "HandBrakeCLI.exe"
@@ -61,7 +59,7 @@ foreach($dir in $directories){
     else{
       print("No MTS found in: $dir")
     }
-}
+  }
 }
 
 # ------------------------------------------------------------------
@@ -73,84 +71,78 @@ if ( $files -eq $null){
     print("No file in inbox: $inbox")
 }
 else{
-    print("The following files has been transcoded and is in the process of being uploaded to Vimeo")
-    foreach($file in $files){
-        $year = $file.CreationTime.Year
-        $mts = $file.name
-        $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
-        print("$inbox$mp4")
-        move-item $inbox\$mts $short_term -force
+  print("The following files has been transcoded and is in the process of being uploaded to Vimeo")
+  foreach($file in $files){
+    $year = $file.CreationTime.Year
+    $mts = $file.name
+    $mp4 = ($file.name).replace('.mts','.mp4').replace('.MTS','.mp4')
+    print("$inbox$mp4")
+    move-item $inbox\$mts $short_term -force
 
-        "Transcode mts to mp4"
+    "Transcode mts to mp4"
 		print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
-        Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
-        if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
+    Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
+    if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
-        "Move file around"
-        if((Test-Path $long_term\$year) -eq $false){
-            md $long_term\$year
-        }
-        cp "$short_term\$mp4" "$long_term\$year\$mp4" -force
-		print("Upload File $short_term\$mp4")
-		cd C:\VideoUpload\lib\simple-vimeo-uploader\bin
-        php C:\VideoUpload\lib\simple-vimeo-uploader\bin\upload.php	"$short_term\$mp4"
-        cd $cwd
-        #mv "$short_term\$mp4" "$dropbox\$mp4" -force
-        rm "$short_term\$mts" -force -whatif
+    "Move file around"
+    if((Test-Path $long_term\$year) -eq $false){
+      md $long_term\$year
     }
+    cp "$short_term\$mp4" "$long_term\$year\$mp4" -force
+    cd $cwd
+    rm "$short_term\$mts" -force -whatif
+  }
 }
+
+# ------------------------------------------------------------------
+$vimeo_rss = 'http://vimeo.com/user25324109/videos/rss'
+print("Checking rss feed: $vimeo_rss")
+# ------------------------------------------------------------------
+
+$files = ls $short_term/*.mp4
+$rssFeed = [xml](New-Object System.Net.WebClient).DownloadString($vimeo_rss)
+$rm_count=0
+$upload_count=0
+if($files -ne $null){
+  foreach($file in $files){
+    if($rssFeed.rss.channel.item |select-object title|select-string $file){
+      print("remove: $short_term\$file")
+      rm "$short_term\$file" -force
+      $rm_count = $rm_count+1
+    }
+    else{
+      print("upload: $short_term\$file")
+      cd C:\VideoUpload\lib\simple-vimeo-uploader\bin
+      php C:\VideoUpload\lib\simple-vimeo-uploader\bin\upload.php "$short_term\$file"
+      $upload_count = $upload_count+1
+    }
+  }
+}
+print("file(s) deleted: $rm_count")
+print("file(s) uploaded: $upload_count")
 
 # ------------------------------------------------------------------
 print("Clean Up...")
 # ------------------------------------------------------------------
 
 function delete_old_file($folder, $days_since_creation){
-
-    $files = ls $folder
-    if($files -eq $null){
-        print("No file to deleted in: $folder")
+  $files = ls $folder
+  if($files -eq $null){
+    print("No file to deleted in: $folder")
+  }
+  else{
+    print("File found in: $folder")
+    foreach($file in $files){
+      if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
+        print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
+        rm $folder\$file -force -recurse
+      }
     }
-    else{
-        print("File found in: $folder")
-        foreach($file in $files){
-            if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
-                print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
-                rm $folder\$file -force -recurse
-            }
-            else{
-                print(" * Ignored: " + $file + " (created:" + $file.creationTime + ")")
-            }
-        }
-    }
+  }
 }
 delete_old_file $short_term $delete_shortterm_days
 delete_old_file $log_folder $delete_log_days
 
-# ------------------------------------------------------------------
-$vimeo_rss = 'http://vimeo.com/user25324109/videos/rss'
-print("Clean up dropbox base on rss feed: $vimeo_rss")
-# ------------------------------------------------------------------
-
-$files = ls $dropbox_size
-$rssFeed = [xml](New-Object System.Net.WebClient).DownloadString($vimeo_rss)
-$n=0
-if($files -ne $null){
-  foreach($file in $files){
-    if($rssFeed.rss.channel.item |select-object title|select-string $file){
-      print("dropbox remove: $dropbox\$file")
-      rm "$dropbox\$file" -force
-	  $n = $n+1
-    }
-  }
-}
-print("$n file(s) were deleted from dropbox folder")
-
-# ------------------------------------------------------------------
-# Check dropbox folder size
-# ------------------------------------------------------------------
-
-$dropbox_size = [int]((ls $dropbox -r -force| Measure -property Length -sum).sum /1024/1024)
-print("Current dropbox folder size: $dropbox_size MB")
 print("Process end...`n`n")
 
 # ------------------------------------------------------------------
