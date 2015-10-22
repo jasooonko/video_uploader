@@ -80,8 +80,8 @@ else{
     move-item $inbox\$mts $short_term -force
 
     "Transcode mts to mp4"
-		print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
-    Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
+	print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
+    #Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
     if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
     "Move file around"
@@ -105,19 +105,21 @@ $rm_count=0
 $upload_count=0
 if($files -ne $null){
   foreach($file in $files){
-    if($rssFeed.rss.channel.item |select-object title|select-string $file){
-      print("remove: $short_term\$file")
-      rm "$short_term\$file" -force
+    $title = $file.name -replace '.mp4', ''
+    if($rssFeed.rss.channel.item |select-object title|select-string $title){
+      print("remove: $file")
+      rm "$file" -force
       $rm_count = $rm_count+1
     }
     else{
-      print("upload: $short_term\$file")
+      print("upload: $file")
       cd C:\VideoUpload\lib\simple-vimeo-uploader\bin
-      php C:\VideoUpload\lib\simple-vimeo-uploader\bin\upload.php "$short_term\$file"
+      php C:\VideoUpload\lib\simple-vimeo-uploader\bin\upload.php "$file"
       $upload_count = $upload_count+1
     }
   }
 }
+cd $cwd
 print("file(s) deleted: $rm_count")
 print("file(s) uploaded: $upload_count")
 
@@ -131,7 +133,6 @@ function delete_old_file($folder, $days_since_creation){
     print("No file to deleted in: $folder")
   }
   else{
-    print("File found in: $folder")
     foreach($file in $files){
       if($file.creationtime -lt (get-date).adddays(-$days_since_creation)){    
         print(" - Delete: " + $file + " (created:" + $file.creationTime + ")")
