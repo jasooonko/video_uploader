@@ -81,7 +81,7 @@ else{
 
     "Transcode mts to mp4"
 	print("$handbrake $additional_enc_flags -i $short_term$mts -o $short_term$mp4")
-    #Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
+    Invoke-Expression -command "$handbrake '$additional_enc_flags' -i '$short_term$mts' -o '$short_term$mp4'"
     if($LastExitCode -ne 0){ print("Transcode file failed: $mts")}
 
     "Move file around"
